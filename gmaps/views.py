@@ -1,14 +1,16 @@
 from django.shortcuts import render
 from django.views import generic
 
-from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 
+from django.shortcuts import get_object_or_404, render
+from django.shortcuts import redirect
 from django.utils import timezone
 
 from .models import Location
+from .forms import PostForm
 
 # Create your views here.
 class IndexView(generic.ListView):
@@ -34,6 +36,20 @@ def delete_location(request, pk):
     location.delete()
     return HttpResponse("You're looking at deleting location %s." % location)
 
+def location_new(request):
+    if request.method == "POST":
+        form = PostForm(request.POST)
+        if form.is_valid():
+            location = form.save(commit=False)
+            print(dir(request))
+            #location.location = request.location
+            location.pub_date = timezone.now()
+            location.save()
+            #return redirect('views', pk=location.pk)
+            return HttpResponseRedirect(reverse('gmaps:index'))
+    else:
+        form = PostForm()
+    return render(request, 'gmaps/location_edit.html', {'form': form})
 """
 class ResultsView(generic.DetailView):
     model = Location 
